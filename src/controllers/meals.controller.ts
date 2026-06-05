@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { MealChoice } from '@prisma/client';
 import { prisma } from '../prisma';
-
-const VALID_TYPES = Object.values(MealChoice);
+import { MEAL_CHOICES, type MealChoice } from '../constants/enums';
 
 // POST /meals
 // Body esperado:
@@ -19,9 +17,9 @@ export async function createMeal(req: Request, res: Response) {
     description?: string;
   };
 
-  if (!type || !VALID_TYPES.includes(type as MealChoice)) {
+  if (!type || !(MEAL_CHOICES as readonly string[]).includes(type)) {
     return res.status(400).json({
-      error: `Campo "type" inválido. Use um de: ${VALID_TYPES.join(', ')}`,
+      error: `Campo "type" inválido. Use um de: ${MEAL_CHOICES.join(', ')}`,
     });
   }
 
