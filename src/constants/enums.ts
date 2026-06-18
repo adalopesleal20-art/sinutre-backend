@@ -10,11 +10,11 @@ export const GENDER_CHOICES = [
 export type GenderChoice = (typeof GENDER_CHOICES)[number];
 
 export const MEAL_CHOICES = [
-  'LANCHE',
-  'ALMOCO',
-  'CAFE_DA_MANHA',
-  'JANTAR',
-  'OUTRO',
+  'snack',
+  'lunch',
+  'breakfast',
+  'dinner',
+  'other',
 ] as const;
 export type MealChoice = (typeof MEAL_CHOICES)[number];
 

@@ -2,41 +2,171 @@ import { Request, Response } from 'express';
 import { prisma } from '../prisma';
 import { MEAL_CHOICES, type MealChoice } from '../constants/enums';
 
-// POST /meals
-// Body esperado:
-// {
-//   "type": "LANCHE" | "ALMOCO" | "CAFE_DA_MANHA" | "JANTAR" | "OUTRO",
-//   "eatTime": "2026-06-05T12:30:00.000Z",
-//   "description": "Salada com frango grelhado"   // opcional
-// }
-export async function createMeal(req: Request, res: Response) {
-  const userId = req.userId!;
-  const { type, eatTime, description } = req.body as {
-    type?: string;
-    eatTime?: string;
-    description?: string;
-  };
 
-  if (!type || !(MEAL_CHOICES as readonly string[]).includes(type)) {
-    return res.status(400).json({
-      error: `Campo "type" inválido. Use um de: ${MEAL_CHOICES.join(', ')}`,
-    });
-  }
+export async function meals(
+  req: Request,
+  res: Response,
+) {
+  const meals = await prisma.meal.findMany({
+    where: {
+      userId: req.userId,
+    },
 
-  if (!eatTime || Number.isNaN(Date.parse(eatTime))) {
-    return res
-      .status(400)
-      .json({ error: 'Campo "eatTime" inválido (use ISO 8601).' });
-  }
+    include: {
+      foods: {
+        include: {
+          food: true,
+        },
+      },
+    },
 
-  const meal = await prisma.meal.create({
-    data: {
-      type: type as MealChoice,
-      eatTime: new Date(eatTime),
-      description,
-      userId,
+    orderBy: {
+      createdAt: 'desc',
     },
   });
 
+  const result = meals.map((meal) => {
+    const totals = meal.foods.reduce(
+      (acc, item) => {
+        const factor = item.foodG / 100;
+
+        acc.grams += item.foodG;
+
+        acc.calories +=
+          item.food.caloriesPer100g *
+          factor;
+
+        acc.carbs +=
+          item.food.carbsPer100g *
+          factor;
+
+        acc.proteins +=
+          item.food.proteinPer100g *
+          factor;
+
+        acc.fats +=
+          item.food.fatPer100g *
+          factor;
+
+        return acc;
+      },
+      {
+        grams: 0,
+        calories: 0,
+        carbs: 0,
+        proteins: 0,
+        fats: 0,
+      },
+    );
+
+    return {
+      id: meal.id,
+      name: meal.description,
+      type: meal.type,
+      createdAt: meal.createdAt,
+
+      totals,
+
+      items: meal.foods,
+    };
+  });
+
+  return res.json(result);
+}
+
+export async function createMeal(
+  req: Request,
+  res: Response,
+) {
+  const userId = req.userId!;
+
+  const {
+    type,
+    eatTime,
+    description,
+    items,
+  } = req.body;
+
+  const meal = await prisma.$transaction(
+    async (tx) => {
+      // Busca os alimentos envolvidos
+      const foods = await tx.food.findMany({
+        where: {
+          id: {
+            in: items.map(
+              (i: { foodId: number }) =>
+                i.foodId,
+            ),
+          },
+
+          userId,
+        },
+      });
+
+      if (foods.length !== items.length) {
+        throw new Error(
+          'Alimento não encontrado',
+        );
+      }
+
+      // Cria a refeição
+      const meal = await tx.meal.create({
+        data: {
+          type,
+          eatTime: new Date(eatTime),
+          description,
+          userId,
+        },
+      });
+
+      // Cria MealFood
+      await tx.mealFood.createMany({
+        data: items.map(
+          (
+            item: {
+              foodId: number;
+              grams: number;
+            },
+          ) => {
+            const food = foods.find(
+              (f) => f.id === item.foodId,
+            )!;
+
+            return {
+              mealId: meal.id,
+
+              foodId: food.id,
+
+              foodG: item.grams,
+
+              calories:
+                (food.caloriesPer100g *
+                  item.grams) /
+                100,
+
+              carbs:
+                (food.carbsPer100g *
+                  item.grams) /
+                100,
+
+              protein:
+                (food.proteinPer100g *
+                  item.grams) /
+                100,
+
+              fat:
+                (food.fatPer100g *
+                  item.grams) /
+                100,
+            };
+          },
+        ),
+      });
+
+      return meal;
+    },
+  );
+
   return res.status(201).json(meal);
 }
+
