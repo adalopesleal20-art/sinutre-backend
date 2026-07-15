@@ -32,7 +32,18 @@ foodRouter.post('/', requireAuth, async (req, res) => {
     proteinPer100g,
     fatPer100g,
   } = req.body;
+foodRouter.delete('/:id', requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
 
+  await prisma.food.deleteMany({
+    where: {
+      id,
+      userId: req.userId!,
+    },
+  });
+
+  return res.status(204).send();
+});
   const food = await prisma.food.create({
     data: {
       name,
