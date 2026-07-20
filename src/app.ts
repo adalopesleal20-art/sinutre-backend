@@ -13,6 +13,7 @@ app.use(
     origin: [
       'http://localhost:5173',
       'https://crispy-doodle-97pvq9x6jv4rhx6v6-5173.app.github.dev',
+      'https://sinutre-frontend-nine.vercel.app',
     ],
     credentials: true,
   }),
