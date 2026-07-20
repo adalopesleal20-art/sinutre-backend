@@ -10,12 +10,10 @@ export const app = express();
 
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'https://crispy-doodle-97pvq9x6jv4rhx6v6-5173.app.github.dev',
-      'https://sinutre-frontend-nine.vercel.app',
-    ],
+    origin: true,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
 
