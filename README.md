@@ -1,23 +1,45 @@
-# sinutre-back
+# SiNutre Backend
 
-Backend do **SiNutre — Sistema de Ingestão de Macronutrientes**.
+Backend do projeto **SiNutre**, desenvolvido para o Projeto Final da Formação em Desenvolvimento Web Moderno.
 
-Stack: **TypeScript + Express + Prisma + SQLite**.
+## Deploy
 
-> Versão didática usada em aula. Por enquanto cobre apenas:
-> - Login via GitHub OAuth
-> - Cadastro de uma refeição
+**Railway**
+https://sinutre-backend-production-6b3f.up.railway.app
 
-Estrutura mínima: apenas **rotas** e **controllers** (sem testes).
+## Repositório
 
-## Setup
+https://github.com/adalopesleal20-art/sinutre-backend
 
-```bash
-npm install
-cp .env.example .env          # preencha GITHUB_CLIENT_ID/SECRET e JWT_SECRET
-npx prisma migrate dev        # cria prisma/dev.db e aplica as tabelas
-npm run dev
-```
+---
 
-O banco é um único arquivo em `prisma/dev.db` (ignorado pelo git). Para zerar,
-basta apagar o arquivo e rodar `npx prisma migrate dev` de novo.
+## Funcionalidades
+
+- Login com GitHub (OAuth)
+- Autenticação de usuários
+- Cadastro de alimentos
+- Alteração de alimentos
+- Exclusão de alimentos
+- Busca de alimentos
+- Cadastro de refeições
+- Cadastro e atualização de peso, altura e meta calórica
+- Cálculo do IMC
+- Controle de consumo diário de calorias
+- API utilizada pelo frontend publicado na Vercel
+
+---
+
+## Tecnologias
+
+- Node.js
+- Express
+- TypeScript
+- Prisma ORM
+- SQLite
+- Railway
+
+---
+
+## Autor
+
+Ada Lopes Leal
